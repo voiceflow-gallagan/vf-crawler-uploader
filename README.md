@@ -1,4 +1,5 @@
 # Voiceflow Crawler | KB Uploader <!-- omit from toc -->
+
 ### Forked from https://github.com/BuilderIO/gpt-crawler
 
 Crawl a website URL to extract content, convert it in markdown format, generate files and upload them as text in your Voiceflow knowledge base.
@@ -47,7 +48,7 @@ export const defaultConfig: Config = {
   maxPagesToCrawl: 100,
   waitForSelectorTimeout: 10000,
   VFAPIKey: "VF.DM.XYZ",
-  projectID: "xyz"
+  projectID: "xyz",
 };
 ```
 
@@ -89,11 +90,13 @@ npm start
 ### Alternative methods
 
 #### Running in a container with Docker
+
 [README](./containerapp/README.md)
 
 Go into the `containerapp` directory and modify the `config.ts` as shown above.
 
 #### Running as a CLI
+
 To run the app as a CLI you will need to do an `npm install` to install the dependencies.
 
 To run the CLI:
@@ -114,4 +117,3 @@ To modify the environment you can copy over the `.env.example` to `.env` and set
 ### Upload your data to OpenAI
 
 The crawl will generate a file called `output.json` at the root of this project. Upload that [to OpenAI](https://platform.openai.com/docs/assistants/overview) to create your custom assistant or custom GPT.
-

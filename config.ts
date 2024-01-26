@@ -8,5 +8,5 @@ export const defaultConfig: Config = {
   maxPagesToCrawl: 500,
   waitForSelectorTimeout: 10000,
   VFAPIKey: "VF.DM.65ae631182dc5400075b6c32.jhvhdlLxPESltSeC",
-  projectID: "65ae59de103c763cd9106a6e"
+  projectID: "65ae59de103c763cd9106a6e",
 };

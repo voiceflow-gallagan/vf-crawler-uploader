@@ -1,42 +1,48 @@
 // For more information, see https://crawlee.dev/
-import axios from 'axios'
+import axios from "axios";
 import { Log, PlaywrightCrawler, downloadListOfUrls } from "crawlee";
 import { Config, configSchema } from "./config.js";
 import { Page } from "playwright";
-import html2md from 'html-to-md'
-import FormData from 'form-data';
+import html2md from "html-to-md";
+import FormData from "form-data";
 
 let pageCounter = 0;
 let crawler: PlaywrightCrawler;
 
-async function executePostRequest(filename: string, doc: string, apiKey: string, projectID: string, log: Log) {
-  let form = new FormData()
+async function executePostRequest(
+  filename: string,
+  doc: string,
+  apiKey: string,
+  projectID: string,
+  log: Log,
+) {
+  let form = new FormData();
 
-  form.append('file', doc, { filename: filename })
-  form.append('canEdit', 'true')
+  form.append("file", doc, { filename: filename });
+  form.append("canEdit", "true");
 
   let request = {
-    method: 'post',
+    method: "post",
     url: `https://api.voiceflow.com/v3/projects/${projectID}/knowledge-base/documents/file`,
     headers: {
-      accept: 'application/json, text/plain, */*',
-      'content-type': `multipart/form-data; boundary=${form.getBoundary()}`,
+      accept: "application/json, text/plain, */*",
+      "content-type": `multipart/form-data; boundary=${form.getBoundary()}`,
       authorization: apiKey,
       ...form.getHeaders(),
     },
     data: form,
-  }
+  };
 
   return axios(request)
     .then(function (response) {
       //console.log(JSON.stringify(response.data))
-      log.info(`Uploading ${filename} to KB | ${response.data.status.type}`)
-      return
+      log.info(`Uploading ${filename} to KB | ${response.data.status.type}`);
+      return;
     })
     .catch(function (error) {
-      console.log(error)
-      return
-    })
+      console.log(error);
+      return;
+    });
 }
 
 export function getPageHtml(page: Page, selector = "body") {
@@ -50,7 +56,7 @@ export function getPageHtml(page: Page, selector = "body") {
         XPathResult.ANY_TYPE,
         null,
       );
-    let result = elements.iterateNext() as HTMLElement | null;
+      let result = elements.iterateNext() as HTMLElement | null;
       return result ? result.innerHTML : "";
     } else {
       // Handle as a CSS selector
@@ -110,43 +116,47 @@ export async function crawl(config: Config) {
         const html = await getPageHtml(page, config.selector);
 
         // Save results as JSON to ./storage/datasets/default
-        let mrkdown = html2md(html, {
-          ignoreTags: [
-            '',
-            'style',
-            'head',
-            '!doctype',
-            'form',
-            'svg',
-            'noscript',
-            'script',
-            'meta',
-            'footer',
-            'button'
-          ],
-          skipTags: [
-            'div',
-            'html',
-            'body',
-            'nav',
-            'section',
-            'footer',
-            'main',
-            'aside',
-            'article',
-            'header',
-            'label',
-          ],
-          emptyTags: [],
-          aliasTags: {
-            figure: 'p',
-            dl: 'p',
-            dd: 'p',
-            dt: 'p',
-            figcaption: 'p',
+        let mrkdown = html2md(
+          html,
+          {
+            ignoreTags: [
+              "",
+              "style",
+              "head",
+              "!doctype",
+              "form",
+              "svg",
+              "noscript",
+              "script",
+              "meta",
+              "footer",
+              "button",
+            ],
+            skipTags: [
+              "div",
+              "html",
+              "body",
+              "nav",
+              "section",
+              "footer",
+              "main",
+              "aside",
+              "article",
+              "header",
+              "label",
+            ],
+            emptyTags: [],
+            aliasTags: {
+              figure: "p",
+              dl: "p",
+              dd: "p",
+              dt: "p",
+              figcaption: "p",
+            },
+            renderCustomTags: "SKIP",
           },
-          renderCustomTags: 'SKIP',
-        }, true)
+          true,
+        );
 
         await pushData({ title, url: request.loadedUrl, content: mrkdown });
 
@@ -154,7 +164,13 @@ export async function crawl(config: Config) {
           await config.onVisitPage({ page, pushData });
         }
 
-        await executePostRequest(`${title}.txt`, mrkdown, config.VFAPIKey, config.projectID, log)
+        await executePostRequest(
+          `${title}.txt`,
+          mrkdown,
+          config.VFAPIKey,
+          config.projectID,
+          log,
+        );
 
         // Extract links from the current page
         // and add them to the crawling queue.

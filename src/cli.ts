@@ -26,7 +26,7 @@ async function handler(options: Config) {
       selector,
       maxPagesToCrawl: maxPagesToCrawlStr,
       VFAPIKey,
-      projectID
+      projectID,
     } = options;
 
     // @ts-ignore
@@ -38,10 +38,16 @@ async function handler(options: Config) {
       selector,
       maxPagesToCrawl,
       VFAPIKey,
-      projectID
+      projectID,
     };
 
-    if (!config.url || !config.match || !config.selector || !config.VFAPIKey || !config.projectID) {
+    if (
+      !config.url ||
+      !config.match ||
+      !config.selector ||
+      !config.VFAPIKey ||
+      !config.projectID
+    ) {
       const questions = [];
 
       if (!config.url) {
