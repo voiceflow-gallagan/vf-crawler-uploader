@@ -41,7 +41,7 @@ export const configSchema = z.object({
    * File name for the finished data
    * @default "output.json"
    */
-  outputFileName: z.string(),
+  // outputFileName: z.string(),
   /** Optional cookie to be set. E.g. for Cookie Consent */
   cookie: z
     .union([
@@ -85,6 +85,8 @@ export const configSchema = z.object({
    * @example 5000
    */
   maxTokens: z.number().int().positive().optional(),
+  VFAPIKey: z.string(),
+  projectID: z.string(),
 });
 
 export type Config = z.infer<typeof configSchema>;

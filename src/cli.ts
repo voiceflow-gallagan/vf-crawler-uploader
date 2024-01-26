@@ -2,7 +2,7 @@
 
 import { program } from "commander";
 import { Config } from "./config.js";
-import { crawl, write } from "./core.js";
+import { crawl } from "./core.js";
 import { createRequire } from "node:module";
 import inquirer from "inquirer";
 
@@ -14,7 +14,8 @@ const messages = {
   match: "What is the URL pattern you want to match?",
   selector: "What is the CSS selector you want to match?",
   maxPagesToCrawl: "How many pages do you want to crawl?",
-  outputFileName: "What is the name of the output file?",
+  VFAPIKey: "What is the VF API Key?",
+  projectID: "What is the project ID?",
 };
 
 async function handler(options: Config) {
@@ -24,7 +25,8 @@ async function handler(options: Config) {
       match,
       selector,
       maxPagesToCrawl: maxPagesToCrawlStr,
-      outputFileName,
+      VFAPIKey,
+      projectID
     } = options;
 
     // @ts-ignore
@@ -35,10 +37,11 @@ async function handler(options: Config) {
       match,
       selector,
       maxPagesToCrawl,
-      outputFileName,
+      VFAPIKey,
+      projectID
     };
 
-    if (!config.url || !config.match || !config.selector) {
+    if (!config.url || !config.match || !config.selector || !config.VFAPIKey || !config.projectID) {
       const questions = [];
 
       if (!config.url) {
@@ -65,6 +68,22 @@ async function handler(options: Config) {
         });
       }
 
+      if (!config.VFAPIKey) {
+        questions.push({
+          type: "input",
+          name: "VFAPIKey",
+          message: messages.VFAPIKey,
+        });
+      }
+
+      if (!config.projectID) {
+        questions.push({
+          type: "input",
+          name: "projectID",
+          message: messages.projectID,
+        });
+      }
+
       const answers = await inquirer.prompt(questions);
 
       config = {
@@ -74,7 +93,6 @@ async function handler(options: Config) {
     }
 
     await crawl(config);
-    await write(config);
   } catch (error) {
     console.log(error);
   }
@@ -87,11 +105,8 @@ program
   .option("-m, --match <string>", messages.match, "")
   .option("-s, --selector <string>", messages.selector, "")
   .option("-m, --maxPagesToCrawl <number>", messages.maxPagesToCrawl, "50")
-  .option(
-    "-o, --outputFileName <string>",
-    messages.outputFileName,
-    "output.json",
-  )
+  .option("-k, --vfapikey <string>", messages.VFAPIKey, "")
+  .option("-p, --projectid <string>", messages.projectID, "")
   .action(handler);
 
 program.parse();

@@ -1,14 +1,43 @@
 // For more information, see https://crawlee.dev/
-import { PlaywrightCrawler, downloadListOfUrls } from "crawlee";
-import { readFile, writeFile } from "fs/promises";
-import { glob } from "glob";
+import axios from 'axios'
+import { Log, PlaywrightCrawler, downloadListOfUrls } from "crawlee";
 import { Config, configSchema } from "./config.js";
 import { Page } from "playwright";
-import { isWithinTokenLimit } from "gpt-tokenizer";
-import { PathLike } from "fs";
+import html2md from 'html-to-md'
+import FormData from 'form-data';
 
 let pageCounter = 0;
 let crawler: PlaywrightCrawler;
+
+async function executePostRequest(filename: string, doc: string, apiKey: string, projectID: string, log: Log) {
+  let form = new FormData()
+
+  form.append('file', doc, { filename: filename })
+  form.append('canEdit', 'true')
+
+  let request = {
+    method: 'post',
+    url: `https://api.voiceflow.com/v3/projects/${projectID}/knowledge-base/documents/file`,
+    headers: {
+      accept: 'application/json, text/plain, */*',
+      'content-type': `multipart/form-data; boundary=${form.getBoundary()}`,
+      authorization: apiKey,
+      ...form.getHeaders(),
+    },
+    data: form,
+  }
+
+  return axios(request)
+    .then(function (response) {
+      //console.log(JSON.stringify(response.data))
+      log.info(`Uploading ${filename} to KB | ${response.data.status.type}`)
+      return
+    })
+    .catch(function (error) {
+      console.log(error)
+      return
+    })
+}
 
 export function getPageHtml(page: Page, selector = "body") {
   return page.evaluate((selector) => {
@@ -21,12 +50,12 @@ export function getPageHtml(page: Page, selector = "body") {
         XPathResult.ANY_TYPE,
         null,
       );
-      let result = elements.iterateNext();
-      return result ? result.textContent || "" : "";
+    let result = elements.iterateNext() as HTMLElement | null;
+      return result ? result.innerHTML : "";
     } else {
       // Handle as a CSS selector
       const el = document.querySelector(selector) as HTMLElement | null;
-      return el?.innerText || "";
+      return el?.innerHTML || "";
     }
   }, selector);
 }
@@ -81,11 +110,51 @@ export async function crawl(config: Config) {
         const html = await getPageHtml(page, config.selector);
 
         // Save results as JSON to ./storage/datasets/default
-        await pushData({ title, url: request.loadedUrl, html });
+        let mrkdown = html2md(html, {
+          ignoreTags: [
+            '',
+            'style',
+            'head',
+            '!doctype',
+            'form',
+            'svg',
+            'noscript',
+            'script',
+            'meta',
+            'footer',
+            'button'
+          ],
+          skipTags: [
+            'div',
+            'html',
+            'body',
+            'nav',
+            'section',
+            'footer',
+            'main',
+            'aside',
+            'article',
+            'header',
+            'label',
+          ],
+          emptyTags: [],
+          aliasTags: {
+            figure: 'p',
+            dl: 'p',
+            dd: 'p',
+            dt: 'p',
+            figcaption: 'p',
+          },
+          renderCustomTags: 'SKIP',
+        }, true)
+
+        await pushData({ title, url: request.loadedUrl, content: mrkdown });
 
         if (config.onVisitPage) {
           await config.onVisitPage({ page, pushData });
         }
+
+        await executePostRequest(`${title}.txt`, mrkdown, config.VFAPIKey, config.projectID, log)
 
         // Extract links from the current page
         // and add them to the crawling queue.
@@ -149,88 +218,6 @@ export async function crawl(config: Config) {
   }
 }
 
-export async function write(config: Config) {
-  let nextFileNameString: PathLike = "";
-  const jsonFiles = await glob("storage/datasets/default/*.json", {
-    absolute: true,
-  });
-
-  console.log(`Found ${jsonFiles.length} files to combine...`);
-
-  let currentResults: Record<string, any>[] = [];
-  let currentSize: number = 0;
-  let fileCounter: number = 1;
-  const maxBytes: number = config.maxFileSize
-    ? config.maxFileSize * 1024 * 1024
-    : Infinity;
-
-  const getStringByteSize = (str: string): number =>
-    Buffer.byteLength(str, "utf-8");
-
-  const nextFileName = (): string =>
-    `${config.outputFileName.replace(/\.json$/, "")}-${fileCounter}.json`;
-
-  const writeBatchToFile = async (): Promise<void> => {
-    nextFileNameString = nextFileName();
-    await writeFile(
-      nextFileNameString,
-      JSON.stringify(currentResults, null, 2),
-    );
-    console.log(
-      `Wrote ${currentResults.length} items to ${nextFileNameString}`,
-    );
-    currentResults = [];
-    currentSize = 0;
-    fileCounter++;
-  };
-
-  let estimatedTokens: number = 0;
-
-  const addContentOrSplit = async (
-    data: Record<string, any>,
-  ): Promise<void> => {
-    const contentString: string = JSON.stringify(data);
-    const tokenCount: number | false = isWithinTokenLimit(
-      contentString,
-      config.maxTokens || Infinity,
-    );
-
-    if (typeof tokenCount === "number") {
-      if (estimatedTokens + tokenCount > config.maxTokens!) {
-        // Only write the batch if it's not empty (something to write)
-        if (currentResults.length > 0) {
-          await writeBatchToFile();
-        }
-        // Since the addition of a single item exceeded the token limit, halve it.
-        estimatedTokens = Math.floor(tokenCount / 2);
-        currentResults.push(data);
-      } else {
-        currentResults.push(data);
-        estimatedTokens += tokenCount;
-      }
-    }
-
-    currentSize += getStringByteSize(contentString);
-    if (currentSize > maxBytes) {
-      await writeBatchToFile();
-    }
-  };
-
-  // Iterate over each JSON file and process its contents.
-  for (const file of jsonFiles) {
-    const fileContent = await readFile(file, "utf-8");
-    const data: Record<string, any> = JSON.parse(fileContent);
-    await addContentOrSplit(data);
-  }
-
-  // Check if any remaining data needs to be written to a file.
-  if (currentResults.length > 0) {
-    await writeBatchToFile();
-  }
-
-  return nextFileNameString;
-}
-
 class GPTCrawlerCore {
   config: Config;
 
@@ -240,17 +227,6 @@ class GPTCrawlerCore {
 
   async crawl() {
     await crawl(this.config);
-  }
-
-  async write(): Promise<PathLike> {
-    // we need to wait for the file path as the path can change
-    return new Promise((resolve, reject) => {
-      write(this.config)
-        .then((outputFilePath) => {
-          resolve(outputFilePath);
-        })
-        .catch(reject);
-    });
   }
 }
 

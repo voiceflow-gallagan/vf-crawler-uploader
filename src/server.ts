@@ -1,13 +1,11 @@
 import express, { Express } from "express";
 import cors from "cors";
-import { readFile } from "fs/promises";
 import { Config, configSchema } from "./config.js";
 import { configDotenv } from "dotenv";
 import swaggerUi from "swagger-ui-express";
 // @ts-ignore
 import swaggerDocument from "../swagger-output.json" assert { type: "json" };
 import GPTCrawlerCore from "./core.js";
-import { PathLike } from "fs";
 
 configDotenv();
 
@@ -26,10 +24,8 @@ app.post("/crawl", async (req, res) => {
     const validatedConfig = configSchema.parse(config);
     const crawler = new GPTCrawlerCore(validatedConfig);
     await crawler.crawl();
-    const outputFileName: PathLike = await crawler.write();
-    const outputFileContent = await readFile(outputFileName, "utf-8");
     res.contentType("application/json");
-    return res.send(outputFileContent);
+    return res.send({ status: "success" });
   } catch (error) {
     return res
       .status(500)
@@ -40,5 +36,7 @@ app.post("/crawl", async (req, res) => {
 app.listen(port, hostname, () => {
   console.log(`API server listening at http://${hostname}:${port}`);
 });
-
+/* app.listen(port, () => {
+  console.log(`API server listening at http://${hostname}:${port}`);
+}); */
 export default app;

@@ -10,6 +10,7 @@
     "skipLibCheck": true,
     "lib": ["DOM"],
     "strict": true,
+    "allowSyntheticDefaultImports": true
   },
   "include": ["./src/**/*", "config.ts"]
 }
