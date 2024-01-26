@@ -115,6 +115,7 @@ You can use the endpoint `/crawl` with the post request body of config json to r
 To modify the environment you can copy over the `.env.example` to `.env` and set your values like port, etc. to override the variables for the server.
 
 ## Video
+
 Here's a video to show how to use the crawler as a server with an example of a request to the API.
 
 [![Demo Video](https://i9.ytimg.com/vi_webp/0HeSG-KjZrw/mqdefault.webp?v=65b3bd02&sqp=CIz4zq0G&rs=AOn4CLD0RqNAmNdUaQcC4f4k_PgU9cuh1w)](https://youtu.be/0HeSG-KjZrw)
