@@ -113,5 +113,3 @@ To run the server:
 You can use the endpoint `/crawl` with the post request body of config json to run the crawler. The api docs are served on the endpoint `/api-docs` and are served using swagger.
 
 To modify the environment you can copy over the `.env.example` to `.env` and set your values like port, etc. to override the variables for the server.
-
-
