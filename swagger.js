@@ -1,14 +1,20 @@
-import swaggerAutogen from "swagger-autogen";
+import swaggerAutogen from 'swagger-autogen'
+import { configDotenv } from 'dotenv'
+
+configDotenv()
+
+const port = process.env.API_PORT || 3000
+const hostname = process.env.API_HOST || 'localhost'
 
 const doc = {
   info: {
-    title: "GPT Crawler API",
-    description: "GPT Crawler",
+    title: 'GPT Crawler API',
+    description: 'GPT Crawler',
   },
-  host: "localhost:5000",
-};
+  host: `${hostname}:${port}`,
+}
 
-const outputFile = "swagger-output.json";
-const routes = ["./src/server.ts"];
+const outputFile = 'swagger-output.json'
+const routes = ['./src/server.ts']
 
-swaggerAutogen()(outputFile, routes, doc);
+swaggerAutogen()(outputFile, routes, doc)
