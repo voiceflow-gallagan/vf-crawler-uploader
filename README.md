@@ -114,6 +114,4 @@ You can use the endpoint `/crawl` with the post request body of config json to r
 
 To modify the environment you can copy over the `.env.example` to `.env` and set your values like port, etc. to override the variables for the server.
 
-### Upload your data to OpenAI
 
-The crawl will generate a file called `output.json` at the root of this project. Upload that [to OpenAI](https://platform.openai.com/docs/assistants/overview) to create your custom assistant or custom GPT.
