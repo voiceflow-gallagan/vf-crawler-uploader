@@ -13,6 +13,7 @@ const messages = {
   url: "What is the first URL of the website you want to crawl?",
   match: "What is the URL pattern you want to match?",
   selector: "What is the CSS selector you want to match?",
+  exclude: "What is the URL pattern you want to exclude?",
   maxPagesToCrawl: "How many pages do you want to crawl?",
   VFAPIKey: "What is the VF API Key?",
   projectID: "What is the project ID?",
@@ -24,6 +25,7 @@ async function handler(options: Config) {
       url,
       match,
       selector,
+      exclude,
       maxPagesToCrawl: maxPagesToCrawlStr,
       VFAPIKey,
       projectID,
@@ -36,6 +38,7 @@ async function handler(options: Config) {
       url,
       match,
       selector,
+      exclude,
       maxPagesToCrawl,
       VFAPIKey,
       projectID,
@@ -110,6 +113,7 @@ program
   .option("-u, --url <string>", messages.url, "")
   .option("-m, --match <string>", messages.match, "")
   .option("-s, --selector <string>", messages.selector, "")
+  .option("-e, --exclude <array>", messages.exclude, "")
   .option("-m, --maxPagesToCrawl <number>", messages.maxPagesToCrawl, "50")
   .option("-k, --vfapikey <string>", messages.VFAPIKey, "")
   .option("-p, --projectid <string>", messages.projectID, "")

@@ -6,9 +6,6 @@ import { Page } from "playwright";
 import html2md from "html-to-md";
 import FormData from "form-data";
 
-let pageCounter = 0;
-let crawler: PlaywrightCrawler;
-
 async function executePostRequest(
   filename: string,
   doc: string,
@@ -84,12 +81,13 @@ export async function waitForXPath(page: Page, xpath: string, timeout: number) {
 }
 
 export async function crawl(config: Config) {
+  let pageCounter = 0;
   configSchema.parse(config);
 
   if (process.env.NO_CRAWL !== "true") {
     // PlaywrightCrawler crawls the web using a headless
     // browser controlled by the Playwright library.
-    crawler = new PlaywrightCrawler({
+    let crawler = new PlaywrightCrawler({
       // Use the requestHandler to process each of the crawled pages.
       async requestHandler({ request, page, enqueueLinks, log, pushData }) {
         const title = await page.title();
