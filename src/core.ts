@@ -6,8 +6,8 @@ import { Page } from "playwright";
 import html2md from "html-to-md";
 import FormData from "form-data";
 
-//let pageCounter = 0;
-//let crawler: PlaywrightCrawler;
+let pageCounter = 0;
+let crawler: PlaywrightCrawler;
 
 async function executePostRequest(
   filename: string,
@@ -84,14 +84,12 @@ export async function waitForXPath(page: Page, xpath: string, timeout: number) {
 }
 
 export async function crawl(config: Config) {
-  let pageCounter = 0;
   configSchema.parse(config);
 
   if (process.env.NO_CRAWL !== "true") {
     // PlaywrightCrawler crawls the web using a headless
     // browser controlled by the Playwright library.
-
-    let localCrawler = new PlaywrightCrawler({
+    crawler = new PlaywrightCrawler({
       // Use the requestHandler to process each of the crawled pages.
       async requestHandler({ request, page, enqueueLinks, log, pushData }) {
         const title = await page.title();
@@ -225,13 +223,13 @@ export async function crawl(config: Config) {
       const listOfUrls = await downloadListOfUrls({ url: config.url });
 
       // Add the initial URL to the crawling queue.
-      await localCrawler.addRequests(listOfUrls);
+      await crawler.addRequests(listOfUrls);
 
       // Run the crawler
-      await localCrawler.run();
+      await crawler.run();
     } else {
       // Add first URL to the queue and start the crawl.
-      await localCrawler.run([config.url]);
+      await crawler.run([config.url]);
     }
   }
 }

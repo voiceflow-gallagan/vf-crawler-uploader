@@ -63,8 +63,6 @@ type Config = {
   /** Selector to grab the inner text from */
   selector: string;
   /** Don't crawl more than this many pages */
-  exclude?: string | string[];
-  /** Don't crawl more than this many pages */
   maxPagesToCrawl: number;
   /** Optional resources to exclude
    *
@@ -95,7 +93,7 @@ npm start
 
 [README](./containerapp/README.md)
 
-Go into the `containerapp/data` directory and modify the `config.ts` as shown above.
+Go into the `containerapp` directory and modify the `config.ts` as shown above.
 
 #### Running as a CLI
 
